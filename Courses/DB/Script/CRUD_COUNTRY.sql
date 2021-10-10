@@ -51,9 +51,10 @@ BEGIN TRY
 	     SELECT COUNT(*) AS 'TOTAL RECORDS BEFORE TRANSACTION' FROM dbo.Country
 	     DECLARE @temp TABLE
 		 (
-		   CountryID char(3)
+		   CountryID   char(3),
+		   CountryName varchar(50)
 		 )
-     	 INSERT INTO dbo.Country OUTPUT INSERTED.CountryId INTO @temp
+     	 INSERT INTO dbo.Country OUTPUT INSERTED.CountryId, INSERTED.CountryID INTO @temp
      	 VALUES(@CountryID, @CountryName)
 
 		 SET @CountryID  = (SELECT CountryID FROM @temp)

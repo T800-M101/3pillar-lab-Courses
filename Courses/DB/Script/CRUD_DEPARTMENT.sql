@@ -19,7 +19,7 @@ GO
 --This procedure receives 1 parameter DepartmentID which is an int. 
 --Example: EXEC spSelectDepartment 1.
 
-CREATE OR ALTER PROCEDURE spSelectCountry
+CREATE OR ALTER PROCEDURE spSelectDepartment
 (
   @DepartmentID int
 )

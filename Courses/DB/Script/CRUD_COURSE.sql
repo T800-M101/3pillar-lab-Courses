@@ -84,7 +84,7 @@ GO
 --====================================UPDATE=====================================================================
 --This procedure receives 8  parameters CourseID, CourseName, Credits, CourseCode, Price, CategoryID, LanguageID, InstructorID 
 --The SP should show the record updated. 
---Example: EXEC spUpdateCourseWithTransaction 20,'Node JS: Advanced Concepts',60,'NODE02','200.00',2,'ESP',20
+--Example: EXEC spUpdateCourseWithTransaction 20,'Node JS: Advanced Concepts',60,'NODE02',200.00,2,'ESP',20
 
 CREATE OR ALTER PROCEDURE spUpdateCourseWithTransaction
 (

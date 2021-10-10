@@ -61,9 +61,10 @@ GO
 --TEST COURSE
 EXEC spSelectCourse 5
 EXEC spInsertCourseWithTransaction 'Learn and Understand NodeJS',50,'NODE01',200.00,1,'ENG',19
-EXEC spUpdateCourseWithTransaction 20,'Node JS: Advanced Concepts',60,'NODE02','200.00',2,'ESP',20
+EXEC spUpdateCourseWithTransaction 20,'Node JS: Advanced Concepts',60,'NODE02',200.00,2,'ESP',20
 EXEC spDeleteCourseWithTransaction 20
 GO
+
 
 
 
