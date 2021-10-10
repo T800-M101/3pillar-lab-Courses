@@ -1,125 +1,138 @@
 --==============STORED PROCEDURES FOR STUDENT TABLE===========================
 
+USE Courses
+GO
+
+CREATE OR ALTER VIEW SHOW_ERRORS
+AS 
+SELECT SUSER_SNAME()     suser_name,
+       ERROR_NUMBER()    error_number,
+       ERROR_STATE()     error_state,
+       ERROR_SEVERITY()  error_severity,
+       ERROR_LINE()      error_line,
+       ERROR_PROCEDURE() error_procedure,
+       ERROR_MESSAGE()   error_message,
+       GETDATE()         date
+
+
+GO
+
 --===========================SELECT===========================================
---This procedure returns the firstname, lastname and phone number of a student. 
---It receives a parameter @StudentID which is an int. 
+--This procedure receives 1 parameter StudentID which is an int. 
 --Example: EXEC spSelectStudent 5
 
---CREATE PROCEDURE spSelectStudent
---(
---  @StudentID int
---)
---AS
---BEGIN
---     SELECT FirstName,LastName,PhoneNumber
---	 FROM   dbo.Student
---	 WHERE  StudentID = @StudentID
---END
---GO
+CREATE OR ALTER PROCEDURE spSelectStudent
+(
+  @StudentID int
+)
+AS
+BEGIN
+     SELECT *
+	 FROM   dbo.Student
+	 WHERE  StudentID = @StudentID
+END
+GO
 
 
---EXEC spSelectStudent 5
---GO     
+    
 
 --================================INSERT==================================================
---This procedure 7 parameters @FirstName, @LastName, @PhoneNUmber, @Email, @Age, @Gender, @CountryID 
---The SP show show the record inserted. 
---Example: EXEC spInsertStudentWithTransaction null,'Genaro','Gonzalez','6143068687','gena@xprueba.com',37,'F','MEX'
+--This procedure receives 7 parameters FirstName, LastName, PhoneNUmber, Email, Age, Gender, CountryID 
+--The SP should show the record inserted. 
+--Example: EXEC spInsertStudentWithTransaction 'Genaro','Gonzalez','6143068687','gena@xprueba.com',37,'M','MEX'
 
---CREATE PROCEDURE spInsertStudentWithTransaction
---(
--- @FirstName   varchar(30),
--- @LastName    varchar(30),
--- @PhoneNumber varchar(15),
--- @Email       varchar(50),
--- @Age         tinyint,
--- @Gender      char(1),
--- @CountryID   char(3)
---)
---AS
---BEGIN TRY
+CREATE OR ALTER PROCEDURE spInsertStudentWithTransaction
+(
+ @FirstName   varchar(30),
+ @LastName    varchar(30),
+ @PhoneNumber varchar(15),
+ @Email       varchar(50),
+ @Age         tinyint,
+ @Gender      char(1),
+ @CountryID   char(3)
+)
+AS
+BEGIN TRY
 
---     BEGIN TRAN
+     BEGIN TRAN
 
---    	 INSERT INTO dbo.Student VALUES(
---										@FirstName, 
---			                            @LastName, 
---				                        @PhoneNumber,
---				                        @Email,
---				                        @Age,
---				                        @Gender,
---				                        @CountryID
---				                        )
+    	 INSERT INTO dbo.Student VALUES(
+										@FirstName, 
+			                            @LastName, 
+				                        @PhoneNumber,
+				                        @Email,
+				                        @Age,
+				                        @Gender,
+				                        @CountryID
+				                        )
 
 		 
 
---		 SELECT * FROM dbo.Student WHERE StudentID = SCOPE_IDENTITY()
+		 SELECT * FROM dbo.Student WHERE StudentID = SCOPE_IDENTITY()
 
---       COMMIT TRAN
---END TRY
---BEGIN CATCH
---       SELECT ERROR_MESSAGE()
---       ROLLBACK TRAN
+       COMMIT TRAN
+END TRY
+BEGIN CATCH
+       ROLLBACK TRAN
+       SELECT * FROM SHOW_ERRORS
 
---END CATCH
---GO
-
-EXEC spInsertStudentWithTransaction null,'Mariana','Fernandez','6143048687','mariann@xprueba.com',20,'F','MEX'
+END CATCH
 GO
 
+
+
 --====================================UPDATE=====================================================================
---This procedure 8 parameters @StudentID, @FirstName, @LastName, @PhoneNumber, @Email, @Age, @Gender, @CountryID 
+--This procedure receives 8 parameters StudentID, FirstName, LastName, PhoneNumber, Email, Age, Gender, CountryID 
 --The SP should show the record updated. 
---Example: EXEC spUpdateStudentWithTransaction 12,'Irma','Dorantes','2231256767','dora@testmail.com',31,'F','CHL'
+--Example: EXEC spUpdateStudentWithTransaction 28,'Genaro','Martinez','6143068687','gena@xprueba.com',38,'M','MEX'
 
---CREATE PROCEDURE spUpdateStudentWithTransaction
---(
--- @StudentID   int, 
--- @FirstName   varchar(30),
--- @LastName    varchar(30),
--- @PhoneNumber varchar(15),
--- @Email       varchar(50),
--- @Age         tinyint,
--- @Gender      char(1),
--- @CountryID   char(3)
---)
---AS
+CREATE OR ALTER PROCEDURE spUpdateStudentWithTransaction
+(
+ @StudentID   int, 
+ @FirstName   varchar(30),
+ @LastName    varchar(30),
+ @PhoneNumber varchar(15),
+ @Email       varchar(50),
+ @Age         tinyint,
+ @Gender      char(1),
+ @CountryID   char(3)
+)
+AS
 
---BEGIN TRY
---     BEGIN TRAN
---	     UPDATE dbo.Student 
---         SET FirstName = @FirstName,
---		     LastName = @LastName,
---			 PhoneNumber = @PhoneNumber,
---			 Email = @Email,
---			 Age = @Age,
---			 Gender = @Gender,
---			 CountryID = @CountryID
+BEGIN TRY
+     BEGIN TRAN
+	     UPDATE dbo.Student 
+         SET FirstName = @FirstName,
+		     LastName = @LastName,
+			 PhoneNumber = @PhoneNumber,
+			 Email = @Email,
+			 Age = @Age,
+			 Gender = @Gender,
+			 CountryID = @CountryID
 
---     	 WHERE StudentID = @StudentID 
+     	 WHERE StudentID = @StudentID 
 
---		 SELECT * FROM dbo.Student WHERE StudentID = @StudentID 
---	 COMMIT TRAN
---END TRY
---BEGIN CATCH
---     SELECT ERROR_MESSAGE()
---	 ROLLBACK TRAN
---END CATCH
---GO
+		 SELECT * FROM dbo.Student WHERE StudentID = @StudentID 
+	 COMMIT TRAN
+END TRY
+BEGIN CATCH
+	 ROLLBACK TRAN
+   SELECT * FROM SHOW_ERRORS
+END CATCH
+GO
 
 
---EXEC spUpdateStudentWithTransaction 12,'Irma','Dorantes','2231256767','dora@testmail.com',31,'F','CHL'
---GO
+
 
 --=========================================DELETE=========================================================
---This procedure receives a parameter @StudentID which is a int. 
+--This procedure receives 1 parameter StudentID which is a int. 
 --The SP should show: 
 -- a) total record in table before transaction 
 -- b) the record deleted 
 -- c) total records in table after transaction 
 --Example: EXEC spDeleteStudentWithTransaction 31
 
-CREATE PROCEDURE spDeleteStudentWithTransaction
+CREATE OR ALTER PROCEDURE spDeleteStudentWithTransaction
 (
  @StudentID int
 )
@@ -175,13 +188,12 @@ BEGIN TRY
 	    COMMIT TRAN
 END TRY
 BEGIN CATCH
-     SELECT ERROR_MESSAGE()
-	 ROLLBACK
+	 ROLLBACK TRAN
+     SELECT * FROM SHOW_ERRORS
 END CATCH
 GO
 
-EXEC spDeleteStudentWithTransaction 35
-GO
+
 
 
 

@@ -1,151 +1,149 @@
-
 --==============STORED PROCEDURES FOR COUNTRY TABLE===========================
+USE Courses
+GO
+
+CREATE OR ALTER VIEW SHOW_ERRORS
+AS 
+SELECT SUSER_SNAME()     suser_name,
+       ERROR_NUMBER()    error_number,
+       ERROR_STATE()     error_state,
+       ERROR_SEVERITY()  error_severity,
+       ERROR_LINE()      error_line,
+       ERROR_PROCEDURE() error_procedure,
+       ERROR_MESSAGE()   error_message,
+       GETDATE()         date
+
+
+GO
 
 --===========================SELECT===========================================
---This procedure returns the name of a country. It receives a parameter @CountryID
---which is a country code of 3 characteres. 
---Example: EXEC spSelectCountry 'ARG'  (for Argentina).
+--This procedure receives 1 parameter CountryID which is a country code of 3 characteres. 
+--Example: EXEC spSelectCountry 'ARG' 
 
---CREATE PROCEDURE spSelectCountry
---(
---  @CountryID char(3)
---)
---AS
---BEGIN
---    SELECT * FROM dbo.Country
---	  WHERE CountryID = @CountryID
---END
---GO
+CREATE OR ALTER PROCEDURE spSelectCountry
+(
+  @CountryID char(3)
+)
+AS
+BEGIN
+    SELECT * FROM dbo.Country
+	  WHERE CountryID = @CountryID
+END
+GO
 
---EXEC spSelectCountry 'ARG'
---GO
+
 
 
 --===========================INSERT============================================
---This procedure receives 2 parameters. @CountryID and @CountryName
---The SP should show all the record from the Country table with the new record inserted. 
---Example: EXEC spInsertCountry 'CXR','Isla de Pascua'
 
---CREATE PROCEDURE spInsertCountry
---(
---	@CountryID char(3),
---	@CountryName varchar(50)
---)
---AS
---BEGIN
-
---	INSERT INTO dbo.Country 
---	VALUES(@CountryID, @CountryName)
-	
---	SELECT * FROM  dbo.Country ORDER BY CountryID DESC
---END
-
---EXEC spInsertCountry 'FLK','Islas Malvinas'
---GO
-
-
-----------------------------------------------------------------------------------------------------------------
---This procedure receives 2 parameters. @CountryID and @CountryName
+--This procedure receives 2 parameters. CountryID and CountryName
 --The SP should show the record that was inserted. 
---Example: EXEC spInsertCountryWithTransaction 'ETH','Etiopia'
+--Example: EXEC spInsertCountryWithTransaction 'CPV','Cabo Verde'
 
---CREATE PROCEDURE spInsertCountryWithTransaction
---(
---	@CountryID char(3),
---	@CountryName varchar(50)
---)
---AS
---BEGIN TRY
---     BEGIN TRAN
---	     DECLARE @temp TABLE
---		 (
---		   CountryID char(3)
---		 )
---     	 INSERT INTO dbo.Country OUTPUT INSERTED.CountryId INTO @temp
---     	 VALUES(@CountryID, @CountryName)
+CREATE OR ALTER PROCEDURE spInsertCountryWithTransaction
+(
+	@CountryID char(3),
+	@CountryName varchar(50)
+)
+AS
+BEGIN TRY
+     BEGIN TRAN
+	     SELECT COUNT(*) AS 'TOTAL RECORDS BEFORE TRANSACTION' FROM dbo.Country
+	     DECLARE @temp TABLE
+		 (
+		   CountryID char(3)
+		 )
+     	 INSERT INTO dbo.Country OUTPUT INSERTED.CountryId INTO @temp
+     	 VALUES(@CountryID, @CountryName)
 
---		 SET @CountryID  = (SELECT CountryID FROM @temp)
+		 SET @CountryID  = (SELECT CountryID FROM @temp)
 
---		 SELECT * FROM dbo.Country WHERE CountryID = @CountryID
---       COMMIT TRAN;
---END TRY
---BEGIN CATCH
---       SELECT ERROR_MESSAGE()
---       ROLLBACK TRAN
+		 SELECT * FROM dbo.Country WHERE CountryID = @CountryID
+		 SELECT COUNT(*) AS 'TOTAL RECORDS AFTER TRANSACTION' FROM dbo.Country
+       COMMIT TRAN;
+END TRY
+BEGIN CATCH
+       ROLLBACK TRAN
+       SELECT * FROM SHOW_ERRORS
 
---END CATCH
+END CATCH
+GO
 
---EXEC spInsertCountryWithTransaction 'FJI','Fiji'
---GO
 
 --===========================UPDATE===================================================
---This procedure receives 2 parameters. @CountryID and @CountryName
+--This procedure receives 2 parameters. CountryID and CountryName
 --The SP should show the record that was updated. 
---Example: EXEC spUpdateCountryWithTransaction 'ETH','Etiopia'
+--Example: EXEC spUpdateCountryNameWithTransaction 'CPV','Cabo Rojo'
 
 
---CREATE PROCEDURE spUpdateCountryWithTransaction
---(
---	@CountryID char(3),
---	@CountryName varchar(50)
---)
---AS
---BEGIN TRY
---     BEGIN TRAN
+CREATE OR ALTER PROCEDURE spUpdateCountryNameWithTransaction
+(
+	@CountryID char(3),
+	@CountryName varchar(50)
+)
+AS
+BEGIN TRY
+     BEGIN TRAN
 
---     	 UPDATE dbo.Country 
---       SET CountryName = @CountryName
---     	 WHERE CountryID = @CountryID 
+     	   UPDATE dbo.Country 
+           SET CountryName = @CountryName
+     	   WHERE CountryID = @CountryID 
 
---		 SELECT * FROM dbo.Country WHERE CountryID = @CountryID
---         COMMIT TRAN;
---     END TRY
---BEGIN CATCH
---       SELECT ERROR_MESSAGE()
---       ROLLBACK TRAN
+		   SELECT * FROM dbo.Country WHERE CountryID = @CountryID
+		  
+      COMMIT TRAN
+END TRY
+BEGIN CATCH
+       ROLLBACK TRAN
+       SELECT * FROM SHOW_ERRORS
 
---END CATCH
+END CATCH
+GO
 
---EXEC spUpdateCountryWithTransaction 'ETH','Etiopia'
---GO
+
+
 
 --==================================DELETE==============================================
---This procedure receives 2 parameters. @CountryID and @CountryName. 
---The procedure can delete the record as long as one of the parameters is correct.
+--This procedure receives 1 parameter, CountryID  
 --The SP should show the record that was deleted. 
---Example: EXEC spDeleteCountryWithTransaction 'COM','Comoras'
+--Example: EXEC spDeleteCountryWithTransaction 'CPV'
 
---ALTER PROCEDURE spDeleteCountryWithTransaction
---(
---	@CountryID char(3),
---	@CountryName varchar(50)
---)
---AS
---BEGIN TRY
---     BEGIN TRAN
---	     DECLARE @temp TABLE
---		 (
---		   CountryID char(3),
---         CountryName varchar(50) 
---		 )
---     	 DELETE FROM dbo.Country OUTPUT DELETED.CountryId, DELETED.CountryName INTO @temp
---		 WHERE CountryID = @CountryID OR CountryName = @CountryName  
+CREATE OR ALTER PROCEDURE spDeleteCountryWithTransaction
+(
+	@CountryID char(3)
 
---		 SET @CountryID = (SELECT CountryID FROM @temp)
+)
+AS
+BEGIN TRY
+     BEGIN TRAN
+	     SELECT COUNT(*) AS 'TOTAL RECORDS BEFORE TRANSACTION' FROM dbo.Country
+	     DECLARE @temp TABLE
+		 (
+		   CountryID char(3),
+		   CountryName varchar(50)
+		 )
 
---		 SELECT CountryID AS 'ID ELIMINADO', CountryName AS 'PAIS ELIMINADO' 
---         FROM @temp 
---         WHERE CountryID = @CountryID 
+     	 DELETE FROM dbo.Country OUTPUT DELETED.CountryId, DELETED.CountryName INTO @temp
+		 WHERE CountryID = @CountryID 
 
---         COMMIT TRAN;
---END TRY
---BEGIN CATCH
---       SELECT ERROR_MESSAGE()
---       ROLLBACK TRAN
---END CATCH
+		 SET @CountryID = (SELECT CountryID FROM @temp)
 
---EXEC spDeleteCountryWithTransaction 'ERI','Eritrea'
---GO
+		 SELECT CountryID AS 'DELETED ID', CountryName AS 'DELETED COUNTRY' 
+         FROM @temp 
+         WHERE CountryID = @CountryID 
+		 SELECT COUNT(*) AS 'TOTAL RECORDS AFTER TRANSACTION' FROM dbo.Country
+
+         COMMIT TRAN;
+END TRY
+BEGIN CATCH
+       ROLLBACK TRAN
+       SELECT * FROM SHOW_ERRORS
+END CATCH
+GO
+
+
+
+
 
 
 
